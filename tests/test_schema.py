@@ -161,6 +161,25 @@ class TestSchema(unittest.TestCase):
         self.assertEqual(schema.column_names("test"), ["x", "y"])
         schema.add_table("test")
         self.assertEqual(schema.column_names("test"), ["x", "y"])
+        schema.add_table('"test"')
+        self.assertEqual(schema.column_names('"test"'), [])
+        schema.add_table('"test"', {"x": "string"})
+        self.assertEqual(schema.column_names('"test"'), ["x"])
+        schema.add_table('"test"', {"x": "string", "y": "int"})
+        self.assertEqual(schema.column_names('"test"'), ["x", "y"])
+        schema.add_table('"TEST"')
+        self.assertEqual(schema.column_names('"TEST"'), [])
+        schema.add_table('"TEST"', {"x": "string"})
+        self.assertEqual(schema.column_names('"TEST"'), ["x"])
+        schema.add_table('"TEST"', {"x": "string", "y": "int"})
+        self.assertEqual(schema.column_names('"TEST"'), ["x", "y"])
+        schema.add_table("test", {'"x"': "string"})
+        self.assertEqual(schema.column_names("test"), ['"x"'])
+        schema.add_table("test", {'"x"': "string", '"y"': "int"})
+        self.assertEqual(schema.column_names("test"), ['"x"', '"y"'])
+        schema.add_table("test")
+        self.assertEqual(schema.column_names("test"), ['"x"', '"y"'])
+        
 
     def test_schema_get_column_type(self):
         schema = MappingSchema({"a": {"b": "varchar"}})
@@ -200,16 +219,37 @@ class TestSchema(unittest.TestCase):
 
     def test_schema_normalization(self):
         schema = MappingSchema(
-            schema={"x": {"`y`": {"Z": {"a": "INT", "`B`": "VARCHAR"}, "w": {"C": "INT"}}}},
+            schema={
+                "x": {
+                    "`y`": {
+                        "Z": {
+                            "a": "INT", 
+                            "`B`": "VARCHAR"
+                        }, 
+                        "w": {
+                            "C": "INT"
+                        }, 
+                        '"V"': {
+                            '"D"': "INT"
+                        }
+                    }
+                }
+            },
             dialect="spark",
         )
 
         table_z = exp.Table(this="z", db="y", catalog="x")
         table_w = exp.Table(this="w", db="y", catalog="x")
+        table_v = exp.Table(this="V", db="y", catalog="x")
 
         self.assertEqual(schema.column_names(table_z), ["a", "B"])
         self.assertEqual(schema.column_names(table_w), ["c"])
+        self.assertEqual(schema.column_names(table_v), ['D'])
 
         # Clickhouse supports both `` and "" for identifier quotes; sqlglot uses "" when generating sql
         schema = MappingSchema(schema={"x": {"`y`": "INT"}}, dialect="clickhouse")
         self.assertEqual(schema.column_names(exp.Table(this="x")), ["y"])
+
+        schema = MappingSchema(schema={'"Test"': {'"CamelCaseTable"': "INT"}})
+
+        self.assertEqual(schema.column_names(exp.Table(this='Test', quoted=True)), ["CamelCaseTable"])
