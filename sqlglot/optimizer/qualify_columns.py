@@ -147,7 +147,7 @@ def _expand_group_by(scope, resolver):
             # Source columns get priority over select aliases
             if table:
                 table_identifier = resolver.get_source_identifier(table)
-                node.set("table", exp.to_identifier(table_identifier))
+                node.set("table", table_identifier)
                 return node
 
             selects = {s.alias_or_name: s for s in scope.selects}
@@ -214,7 +214,7 @@ def _qualify_columns(scope, resolver):
             # column_table can be a '' because bigquery unnest has no table alias
             if column_table:
                 table_identifier = resolver.get_source_identifier(column_table)
-                column.set("table", exp.to_identifier(table_identifier))
+                column.set("table", table_identifier)
 
     columns_missing_from_scope = []
     # Determine whether each reference in the order by clause is to a column or an alias.
@@ -242,7 +242,7 @@ def _qualify_columns(scope, resolver):
 
         if column_table:
             table_identifier = resolver.get_source_identifier(column_table)
-            column.set("table", exp.to_identifier(column_table))
+            column.set("table", table_identifier)
 
 
 def _expand_stars(scope, resolver):
@@ -397,9 +397,12 @@ class Resolver:
         return source.expression.named_selects
 
     def get_source_identifier(self, name):
-        node = self.scope.sources[name]
+        node = self.scope.sources.get(name, None)
 
-        return node.this
+        if isinstance(node, exp.Table):
+            return node.this
+        
+        return exp.to_identifier(name)
 
     def _get_all_source_columns(self):
         if self._source_columns is None:
