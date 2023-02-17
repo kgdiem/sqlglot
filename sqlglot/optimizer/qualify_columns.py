@@ -363,9 +363,15 @@ class Resolver:
                 if not columns or "*" in columns
             )
             if len(sources_without_schema) == 1:
-                return sources_without_schema[0]
+                table = sources_without_schema[0]
 
-        return table
+                identifier = self._get_source_identifier(table)
+
+                return identifier
+
+        identifier = self._get_source_identifier(table)
+
+        return identifier
 
     @property
     def all_columns(self):
@@ -392,6 +398,11 @@ class Resolver:
 
         # Otherwise, if referencing another scope, return that scope's named selects
         return source.expression.named_selects
+
+    def _get_source_identifier(self, source):
+        node = self.scope.sources[source]
+
+        return node.args.get('this')
 
     def _get_all_source_columns(self):
         if self._source_columns is None:
