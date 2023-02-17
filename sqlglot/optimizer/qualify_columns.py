@@ -1,5 +1,6 @@
 import itertools
 import typing as t
+import pdb
 
 from sqlglot import alias, exp
 from sqlglot.errors import OptimizeError
@@ -400,6 +401,9 @@ class Resolver:
         node = self.scope.sources.get(name, None)
 
         if isinstance(node, exp.Table):
+            if node.alias:
+                return exp.to_identifier(node.alias)
+            
             return node.this
         
         return exp.to_identifier(name)
