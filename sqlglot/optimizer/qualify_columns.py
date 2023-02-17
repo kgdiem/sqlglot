@@ -1,4 +1,5 @@
 import itertools
+import pdb
 import typing as t
 
 from sqlglot import alias, exp
@@ -212,7 +213,9 @@ def _qualify_columns(scope, resolver):
 
             # column_table can be a '' because bigquery unnest has no table alias
             if column_table:
-                column.set("table", exp.to_identifier(column_table))
+                table_identifier = resolver.get_source_identifier(column_table)
+                pdb.set_trace()
+                column.set("table", exp.to_identifier(table_identifier))
 
     columns_missing_from_scope = []
     # Determine whether each reference in the order by clause is to a column or an alias.
@@ -363,11 +366,9 @@ class Resolver:
                 if not columns or "*" in columns
             )
             if len(sources_without_schema) == 1:
-                table = sources_without_schema[0]
+                return sources_without_schema[0]
 
-        identifier = self._get_source_identifier(table)
-
-        return identifier
+        return table
 
     @property
     def all_columns(self):
@@ -395,10 +396,10 @@ class Resolver:
         # Otherwise, if referencing another scope, return that scope's named selects
         return source.expression.named_selects
 
-    def _get_source_identifier(self, source):
+    def get_source_identifier(self, source):
         node = self.scope.sources[source]
 
-        return node.args.get('this')
+        return node.this
 
     def _get_all_source_columns(self):
         if self._source_columns is None:
