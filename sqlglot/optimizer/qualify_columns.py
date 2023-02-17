@@ -365,10 +365,6 @@ class Resolver:
             if len(sources_without_schema) == 1:
                 table = sources_without_schema[0]
 
-                identifier = self._get_source_identifier(table)
-
-                return identifier
-
         identifier = self._get_source_identifier(table)
 
         return identifier
