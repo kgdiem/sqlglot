@@ -1,7 +1,6 @@
 import itertools
 from collections import defaultdict
 from enum import Enum, auto
-import pdb
 
 from sqlglot import exp
 from sqlglot.errors import OptimizeError
@@ -354,7 +353,6 @@ class Scope:
         Returns:
              list[exp.Column]: Unqualified columns
         """
-        pdb.set_trace()
         return [c for c in self.columns if not c.table]
 
     @property

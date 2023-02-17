@@ -1,5 +1,4 @@
 import itertools
-import pdb
 import typing as t
 
 from sqlglot import alias, exp
@@ -149,7 +148,6 @@ def _expand_group_by(scope, resolver):
             if table:
                 table_identifier = resolver.get_source_identifier(table)
                 node.set("table", exp.to_identifier(table_identifier))
-                pdb.set_trace()
                 return node
 
             selects = {s.alias_or_name: s for s in scope.selects}
@@ -217,7 +215,6 @@ def _qualify_columns(scope, resolver):
             if column_table:
                 table_identifier = resolver.get_source_identifier(column_table)
                 column.set("table", exp.to_identifier(table_identifier))
-                pdb.set_trace()
 
     columns_missing_from_scope = []
     # Determine whether each reference in the order by clause is to a column or an alias.
@@ -246,7 +243,6 @@ def _qualify_columns(scope, resolver):
         if column_table:
             table_identifier = resolver.get_source_identifier(column_table)
             column.set("table", exp.to_identifier(column_table))
-            pdb.set_trace()
 
 
 def _expand_stars(scope, resolver):
