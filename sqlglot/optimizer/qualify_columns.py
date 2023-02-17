@@ -402,9 +402,9 @@ class Resolver:
 
         if isinstance(node, exp.Table):
             if node.alias:
-                return exp.to_identifier(node.alias)
-            
-            return node.this
+                name = node.alias
+            else:
+                name = node.this
         
         return exp.to_identifier(name)
 
